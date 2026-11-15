@@ -5,7 +5,6 @@ import { DrumAudio } from './audio.mjs';
 const $ = id => document.getElementById(id);
 const pad = $('pad');
 const audio = new DrumAudio();
-const lights = [...$('beat-lights').children];
 let round = null;
 let running = false;
 let loading = false;
@@ -15,7 +14,6 @@ let animation = null;
 let nextSound = 0;
 let origin = 0;
 let displayedBeat = -1;
-let flashTimer;
 let sensorEnabled = false;
 let sensorPending = false;
 let sensorTimer;
@@ -32,15 +30,13 @@ function notify(message = '') {
 }
 
 function lockSettings(locked) {
-  for (const id of ['bpm', 'slower', 'faster', 'window']) $(id).disabled = locked;
+  for (const id of ['bpm', 'window']) $(id).disabled = locked;
 }
 
 function setTempo(value) {
   $('bpm').value = Math.max(40, Math.min(180, Math.round(Number(value) || 60)));
 }
 $('bpm').addEventListener('change', () => setTempo($('bpm').value));
-$('slower').addEventListener('click', () => setTempo(Number($('bpm').value) - 5));
-$('faster').addEventListener('click', () => setTempo(Number($('bpm').value) + 5));
 $('settings-open').addEventListener('click', () => $('settings').showModal());
 $('window').addEventListener('input', () => { $('window-value').value = `±${$('window').value} ms`; });
 $('sensitivity').addEventListener('input', () => {
@@ -52,12 +48,8 @@ $('volume').addEventListener('input', () => {
   audio.setVolume(Number($('volume').value) / 100);
 });
 
-function flash(text, tone = '') {
-  clearTimeout(flashTimer);
+function showPad(text) {
   $('pad-text').textContent = text;
-  pad.dataset.tone = tone;
-  pad.classList.add('struck');
-  flashTimer = setTimeout(() => pad.classList.remove('struck'), 100);
 }
 
 function updateScore() {
@@ -70,20 +62,15 @@ function finish(completed = false) {
   loading = false;
   clearInterval(scheduler);
   cancelAnimationFrame(animation);
-  clearTimeout(flashTimer);
   audio.stop();
-  pad.classList.remove('struck');
   $('start').disabled = false;
   $('start').textContent = '开始';
   lockSettings(false);
-  lights.forEach(light => light.classList.remove('active'));
   if (completed && round) {
     $('pad-text').textContent = `${Math.round(round.hits / round.beats * 100)}%`;
-    pad.dataset.tone = 'hit';
     $('feedback').value = `${round.hits} 命中 · ${round.misses} 漏拍 · ${round.offbeats} 偏拍`;
   } else {
     $('pad-text').textContent = '敲击';
-    pad.dataset.tone = '';
     $('feedback').value = '';
   }
 }
@@ -108,13 +95,10 @@ function draw() {
   const beat = Math.floor((now - origin * 1000) / round.interval);
   if (beat !== displayedBeat && beat >= 0) {
     displayedBeat = beat;
-    lights.forEach((light, index) => light.classList.toggle('active', index === beat % 4));
     if (beat < 4) {
       $('pad-text').textContent = String(4 - beat);
-      pad.dataset.tone = 'count';
     } else if (beat === 4) {
       $('pad-text').textContent = '敲击';
-      pad.dataset.tone = '';
     }
   }
   round.advance(now);
@@ -163,20 +147,20 @@ async function strike() {
       await audio.unlock();
       if (current !== generation || document.hidden) return;
       audio.play('true');
-      flash('敲击', 'hit');
+      showPad('敲击');
     } catch (error) { notify(error.message || '无法播放声音，请重试'); }
     return;
   }
   const result = round.hit(audio.context.currentTime * 1000);
   if (result.kind === 'hit') {
     audio.play('true');
-    flash('准', 'hit');
+    showPad('准');
     const offset = Math.round(result.offset);
     $('feedback').value = `${offset > 0 ? '+' : ''}${offset} ms`;
     updateScore();
   } else if (result.kind === 'offbeat') {
     audio.play('false');
-    flash(result.offset < 0 ? '早' : '晚', 'offbeat');
+    showPad(result.offset < 0 ? '早' : '晚');
     $('feedback').value = `${Math.round(result.offset)} ms`;
   }
 }

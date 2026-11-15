@@ -3,48 +3,37 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#faf9f7">
+  <meta name="theme-color" content="#ffffff">
   <meta name="description" content="通过手机动作、点击或空格键演奏的节奏小游戏。">
   <title>节奏</title>
-  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
   <main>
-    <header>
-      <h1><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9v6m5-10v14m5-12v10m5-6v2"/></svg>节奏</h1>
-      <div class="header-actions">
-        <button id="motion" class="quiet" aria-pressed="false" title="启用手机动作触发">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="9" height="17" rx="2"/><path d="M3 7a9 9 0 0 0 0 10m18-10a9 9 0 0 1 0 10m-10 0h3"/></svg><span>动作</span>
-        </button>
-        <button id="settings-open" class="icon-button" aria-label="设置" title="设置"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></button>
-      </div>
-    </header>
-
     <section class="instrument" aria-label="节奏鼓面">
-      <div id="beat-lights" class="beat-lights" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
       <button id="pad" class="pad" aria-label="敲击鼓面，点击或按空格键发声">
         <span id="pad-text">敲击</span>
       </button>
       <output id="feedback" class="feedback" aria-live="polite"></output>
-      <button id="start" class="start">开始</button>
     </section>
 
-    <footer>
-      <div class="tempo" aria-label="速度">
-        <button id="slower" class="icon-button" aria-label="减慢速度">−</button>
-        <label><input id="bpm" type="number" inputmode="numeric" min="40" max="180" value="60" aria-label="每分钟节拍数"><span>BPM</span></label>
-        <button id="faster" class="icon-button" aria-label="加快速度">+</button>
-      </div>
+    <div class="controls">
+      <button id="start">开始</button>
+      <label class="tempo"><input id="bpm" type="number" inputmode="numeric" min="40" max="180" value="60" aria-label="每分钟节拍数">BPM</label>
       <output id="score" aria-label="命中节拍数">0 / 32</output>
-    </footer>
+    </div>
+    <div class="options">
+      <button id="motion" aria-pressed="false" title="启用手机动作触发"><span>动作</span></button>
+      <button id="settings-open">设置</button>
+    </div>
     <div id="notice" class="notice" role="status" hidden></div>
   </main>
 
   <dialog id="settings">
     <form method="dialog">
-      <div class="dialog-header"><h2>设置</h2><button class="icon-button" aria-label="关闭设置">×</button></div>
+      <div class="dialog-header"><h2>设置</h2><button aria-label="关闭设置">关闭</button></div>
       <label class="setting" for="window">判定窗口<output id="window-value">±150 ms</output></label>
       <input id="window" type="range" min="50" max="150" step="10" value="150">
       <label class="setting" for="sensitivity">动作灵敏度<output id="sensitivity-value">6</output></label>
